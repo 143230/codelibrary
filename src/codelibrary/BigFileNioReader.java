@@ -17,20 +17,21 @@ public class BigFileNioReader {
 	private int BUFFER_SIZE = 10240;
 	private byte[] bt;
 	private FileChannel fileChannel = null;
+	private RandomAccessFile file = null;
 	private ByteBuffer buffer = null;
 	private String bufferString = "";
 	private StringBuffer strBuffer = null;
 	private int fromIndex=0;
-	public BigFileNioReader(String path) throws FileNotFoundException {
+	public BigFileNioReader(String path) throws IOException {
 		this(path,-1);
 	}
 	@SuppressWarnings("resource")
-	public BigFileNioReader(String path,int size) throws FileNotFoundException {
+	public BigFileNioReader(String path,int size) throws IOException {
 		if(size>0){
 			BUFFER_SIZE = size;
 		}
-		File f = new File(path);
-		fileChannel = new RandomAccessFile(f, "r").getChannel();
+		file = new RandomAccessFile(path, "r");
+		fileChannel = file.getChannel();
 		buffer = ByteBuffer.allocate(BUFFER_SIZE);
 		bt = new byte[BUFFER_SIZE];
 		strBuffer = new StringBuffer("");
@@ -71,7 +72,12 @@ public class BigFileNioReader {
 		return line;
 	}
 	public void close() throws IOException{
-		fileChannel.close();
+		if(fileChannel!=null){
+			fileChannel.close();
+		}
+		if(file!=null){
+			file.close();
+		}
 	}
 	public static void main(String[] args) {
 		try {

@@ -56,7 +56,15 @@ public class BigFileNioWriter {
 			}
 		}
 	}
+	public void flush() throws IOException{
+		buffer.flip();
+		fileChannel.write(buffer);
+		buffer.clear();
+	}
 	public void close() throws IOException{
+		if(buffer.position() > 0){
+			System.err.println("The Buffer Was Not Empty.");
+		}
 		if(fileChannel!=null){
 			fileChannel.force(true);
 			fileChannel.close();

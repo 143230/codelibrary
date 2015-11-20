@@ -59,6 +59,7 @@ public class BigFileNioWriter {
 	public void flush() throws IOException{
 		buffer.flip();
 		fileChannel.write(buffer);
+		fileChannel.force(true);
 		buffer.clear();
 	}
 	public void close() throws IOException{

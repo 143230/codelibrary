@@ -1,0 +1,69 @@
+function withjQuery(callback) {
+  if(!(window.jQuery)) {
+    var js = document.createElement('script');
+    js.setAttribute('src', 'https://dynamic.12306.cn/otsweb/js/common/jquery-1.4.2.min.js?version=5.47');
+    js.setAttribute('type', 'text/javascript');
+    js.onload = js.onreadystatechange = function() {
+        if (!this.readyState || this.readyState === 'loaded' || this.readyState === 'complete') {
+                if(callback && typeof callback === "function") {
+                   callback();
+                }
+            js.onload = js.onreadystatechange = null;
+        }
+    };
+    document.getElementsByTagName('head')[0].appendChild(js);
+  }
+}
+ 
+withjQuery( 
+   function() { 
+      $(function(){ alert("jQuery loaded"); })(); 
+   }
+);
+
+
+// ==UserScript==  
+// @name         12306 Booking Assistant
+// @version      1.4.0
+// @author       zzdhidden@gmail.com
+// @namespace    https://github.com/zzdhidden
+// @description  12306 订票助手之(自动登录，自动查票，自动订单)
+// @include      *://dynamic.12306.cn/otsweb/*
+// @require https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js
+// ==/UserScript== 
+ 
+function withjQuery(callback, safe){
+    if(typeof(jQuery) == "undefined") {
+        var script = document.createElement("script");
+        script.type = "text/javascript";
+        script.src = "https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js";
+ 
+        if(safe) {
+            var cb = document.createElement("script");
+            cb.type = "text/javascript";
+            cb.textContent = "jQuery.noConflict();(" + callback.toString() + ")(jQuery, window);";
+            script.addEventListener('load', function() {
+                document.head.appendChild(cb);
+            });
+        }
+        else {
+            var dollar = undefined;
+            if(typeof($) != "undefined") dollar = $;
+            script.addEventListener('load', function() {
+                jQuery.noConflict();
+                $ = dollar;
+                callback(jQuery, window);
+            });
+        }
+        document.head.appendChild(script);
+    } else {
+        setTimeout(function() {
+            //Firefox supports
+            callback(jQuery, typeof unsafeWindow === "undefined" ? window : unsafeWindow);
+        }, 30);
+    }
+}
+ 
+withjQuery(function($, window){
+   $(function() { alert("jQuery loaded"); })();
+}， true);

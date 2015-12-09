@@ -7,6 +7,10 @@ function callback(){
 	}
 
 	var ta = document.getElementById("all-table-above");
+	if(ta==null){
+		console.dir("There are no ancestors");
+		return;
+	}
 	var child = ta.getElementsByTagName("tbody")[0];
 	var trs = child.getElementsByTagName("tr");
 	for(var i=0;i<trs.length;i++){

@@ -28,7 +28,7 @@ function callback(){
 }
 //加载jquery库并添加到网页页面中，然后调用ajax获取网页内容，并对网页内容进行处理
 var js = document.createElement('script');
-js.setAttribute('src', '//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js');
+js.setAttribute('src', '//code.jquery.com/jquery-1.7.2.min.js');
 js.setAttribute('type', 'text/javascript');
 js.onload = js.onreadystatechange = function() {
 	if (!this.readyState || this.readyState === 'loaded' || this.readyState === 'complete') {

@@ -4,7 +4,8 @@ function callback(){
 	var name = curdoc.responseText.match(/<h1>(.*)<\/h1>/m)[1];
 	if(curdoc.responseText.match(/<dt>Comment<\/dt>[ \n]{1,}<dd>(.*)<\/dd>/m)!=null){
 		var comment = curdoc.responseText.match(/<dt>Comment<\/dt>[ \n]{1,}<dd>(.*)<\/dd>/m)[1];
-		str+=(name+"\t:\tComment\t:\t"+comment)+"\n";
+		console.dir(name+"\t:\tComment\t:\t"+comment);
+		str+=(name+"\t:\tComment\t:\t"+comment)+"\r\n";
 	}
 
 	var ta = document.getElementById("all-table-above");
@@ -24,7 +25,8 @@ function callback(){
 		htmlobj=$.ajax({url:objecturl,async:false});
 		var object = htmlobj.responseText.match(/<h1>(.*)<\/h1>/m)[1];
 		object = object.replace(/(^\s*)|(\s*$)/g, "");
-		str+=(subject+"\t:\t"+relation+"\t:\t"+object)+"\n";
+		console.dir(subject+"\t:\t"+relation+"\t:\t"+object);
+		str+=(subject+"\t:\t"+relation+"\t:\t"+object)+"\r\n";
 	}
 	console.dir(str);
 }

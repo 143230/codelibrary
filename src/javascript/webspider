@@ -1,9 +1,10 @@
 function callback(){
+	str="";
 	curdoc=$.ajax({url:window.location.href,async:false});
 	var name = curdoc.responseText.match(/<h1>(.*)<\/h1>/m)[1];
 	if(curdoc.responseText.match(/<dt>Comment<\/dt>[ \n]{1,}<dd>(.*)<\/dd>/m)!=null){
 		var comment = curdoc.responseText.match(/<dt>Comment<\/dt>[ \n]{1,}<dd>(.*)<\/dd>/m)[1];
-		console.dir(name+"\t:\tComment\t:\t"+comment);
+		str+=(name+"\t:\tComment\t:\t"+comment)+"\n";
 	}
 
 	var ta = document.getElementById("all-table-above");
@@ -23,8 +24,9 @@ function callback(){
 		htmlobj=$.ajax({url:objecturl,async:false});
 		var object = htmlobj.responseText.match(/<h1>(.*)<\/h1>/m)[1];
 		object = object.replace(/(^\s*)|(\s*$)/g, "");
-		console.dir(subject+"\t:\t"+relation+"\t:\t"+object);
+		str+=(subject+"\t:\t"+relation+"\t:\t"+object)+"\n";
 	}
+	console.dir(str);
 }
 //加载jquery库并添加到网页页面中，然后调用ajax获取网页内容，并对网页内容进行处理
 var js = document.createElement('script');

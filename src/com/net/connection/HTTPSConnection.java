@@ -66,7 +66,7 @@ public class HTTPSConnection extends HTTPConnection{
 
 	public byte[] request(String method, String file, Map<String, String> headers)
 			throws Exception {
-		return request("HTTPS",method, file, null, headers);
+		return request("HTTPS",method, file, "", headers);
 	}
 
 	public byte[] request(String protocol,String method, String file, Map<String, String> params,
@@ -75,15 +75,10 @@ public class HTTPSConnection extends HTTPConnection{
 	}
 	public static void main(String[] args) {
 		try {
+			System.setProperty ("jsse.enableSNIExtension", "false");
 			HTTPSConnection conn = new HTTPSConnection("kyfw.12306.cn");
 			Map<String, String> params = new HashMap<String, String>();
-			params.put("leftTicketDTO.train_date", "2015-12-17");
-			params.put("leftTicketDTO.from_station", "SHH");
-			params.put("leftTicketDTO.to_station", "NFF");
-			params.put("purpose_codes", "ADULT");
-			byte[] res = conn.request("GET", params,"/otn/leftTicket/log");
-			System.out.println(new String(res));
-			res = conn.request("GET", params,"/otn/leftTicket/queryT");
+			byte[] res = conn.request("GET", params,"/otn/leftTicket/queryT?leftTicketDTO.train_date=2016-02-12&leftTicketDTO.from_station=NFF&leftTicketDTO.to_station=SHH&purpose_codes=ADULT");
 			System.out.println(new String(res));
 		} catch (Exception e) {
 			e.printStackTrace();

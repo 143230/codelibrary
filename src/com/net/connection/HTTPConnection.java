@@ -1,18 +1,20 @@
 package com.net.connection;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
-
-import com.logger.Logger;
+import java.util.zip.GZIPInputStream;
 
 public class HTTPConnection {
 	protected Properties headers = null;
@@ -37,7 +39,7 @@ public class HTTPConnection {
 	}
 
 	public HTTPConnection(String host, short port, int timeout) {
-		this(host, port, timeout, "encoding");
+		this(host, port, timeout, "utf-8");
 	}
 
 	public HTTPConnection(String host, short port, int timeout, String encoding) {
@@ -52,7 +54,7 @@ public class HTTPConnection {
 			if (encoding != null && encoding.length() != 0)
 				this.encoding = encoding;
 		} catch (IOException e) {
-			Logger.error(e);
+			e.printStackTrace();
 		}
 		this.cookies = new HashMap<String, Cookie>();
 	}
@@ -67,24 +69,38 @@ public class HTTPConnection {
 	
 	public byte[] request(String file, Map<String, String> headers)
 			throws Exception {
-		return request("HTTP","GET", file, null, headers);
+		return request("HTTP","GET", file, "", headers);
 	}
 
 	public byte[] request(String method, String file, Map<String, String> headers)
 			throws Exception {
-		return request("HTTP",method, file, null, headers);
+		return request("HTTP",method, file, "", headers);
+	}
+	public byte[] request(String method, String file, Map<String, String> params, Map<String, String> headers)
+			throws Exception {
+		String paramString = getHTTPRequestParameter(params);
+		return request("HTTP",method, file, paramString, headers);
+	}
+	
+	public byte[] request(String method, String file, String paramString, Map<String, String> headers)
+			throws Exception {
+		return request("HTTP",method, file, paramString, headers);
+	}
+	public byte[] request(String protocol,String method, String file, Map<String, String> params,
+			Map<String, String> headers) throws Exception {
+		String paramString = getHTTPRequestParameter(params);
+		return request(protocol,method, file, paramString, headers);
 	}
 
-	public byte[] request(String protocol,String method, String file, Map<String, String> params,
+	public byte[] request(String protocol,String method, String file, String paramString,
 			Map<String, String> headers) throws Exception {
 		if (!"GET".equalsIgnoreCase(method) && !"POST".equalsIgnoreCase(method)) {
 			Exception e = new Exception(
 					"Request Method Must be \"GET\" or \"POST\".");
-			Logger.error(e);
+			e.printStackTrace();
 			throw e;
 		}
 		URL url;
-		String paramString = getHTTPRequestParameter(params);
 		if ("GET".equalsIgnoreCase(method)) {
 			if (paramString.length() > 0)
 				paramString = "?" + paramString;
@@ -102,22 +118,24 @@ public class HTTPConnection {
 			setPostBody(connection, paramString);
 		}
 		int respCode = connection.getResponseCode();
-		System.out.println(respCode);
+//		System.out.println(respCode);
 		String respStatus = connection.getResponseMessage();
-		Logger.info("HTTPConnection", host+"\t"+respCode+"\t"+respStatus+"\n");
+		Map<String, List<String>> header = connection.getHeaderFields(); 
 		if(respCode==200){
-			InputStream is = connection.getInputStream();
+			InputStream urlStream;
+			if(header.containsKey("Content-Encoding") && header.get("Content-Encoding").contains("gzip")) urlStream = new GZIPInputStream(connection.getInputStream());
+			else urlStream = connection.getInputStream();
+//			BufferedReader in = new BufferedReader(new InputStreamReader(urlStream,"utf-8"));  
 			BufferByte buffer = new BufferByte();
 			byte[] bs = new byte[1024];
 			int len = -1;
-			while((len=is.read(bs))!=-1){
+			while((len=urlStream.read(bs))!=-1){
 				buffer.append(bs, 0, len);
 			}
-			is.close();
+			urlStream.close();
 			//从响应头中获取Cookie
 			response = connection.getHeaderFields();
 			Set<Map.Entry<String, List<String>>> responseHeaders = connection.getHeaderFields().entrySet();
-			Logger.info("Response-Headers", connection.getHeaderFields());
 			for (Map.Entry<String, List<String>> entry : responseHeaders) {
 				if("Set-Cookie".equals(entry.getKey())){
 					for (int i = 0; i < entry.getValue().size(); i++) {
@@ -129,19 +147,16 @@ public class HTTPConnection {
 			connection.disconnect();
 			return buffer.getBuffer();
 		}else if(respCode==404){
-			Logger.info("HTTPConnection","File on Host:"+host+" Not Found!\n");
 			System.err.println("File on Host:"+host+" Not Found!");
 		}else if(respCode==500){
-			Logger.info("HTTPConnection","Server on Host:"+host+" Denied Access!\n");
 			System.err.println("Server on Host:"+host+" Denied Access!");
 		}else if(respCode==302){
 			List<String> newurls = connection.getHeaderFields().get("Location");
-			Logger.info("RELocation", newurls);
 			URL newurl = new URL(newurls.get(0));
 			this.host = newurl.getHost();;
 			String newfile = newurl.getFile();
 			System.out.println("Location was ReLocated to Host: "+host+" @ File Addr: "+newfile);
-			return request("HTTP",method, newfile, params, headers);
+			return request(newurl.getProtocol(),method, newfile, paramString, headers);
 		}
 		return null;
 	}
@@ -174,7 +189,7 @@ public class HTTPConnection {
 		for (Entry<String, String> entry : params.entrySet()) {
 			if (paramString.length()>0)
 				paramString.append("&");
-			paramString.append(entry.getKey() + "=" + entry.getValue());
+			paramString.append(entry.getKey() + "=" + URLEncoder.encode(entry.getValue()));
 		}
 		return paramString.toString();
 	}
@@ -191,7 +206,7 @@ public class HTTPConnection {
 	public static void main(String[] args) {
 		HTTPConnection conn = new HTTPConnection("w.seu.edu.cn");
 		try {
-			byte[] res = conn.request("/");
+			byte[] res = conn.request("/portal/index.html");
 			System.out.println(new String(res));
 		} catch (Exception e) {
 			e.printStackTrace();
